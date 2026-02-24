@@ -1,0 +1,177 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\USER\\source\\repos\\TaskPractice\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|c:\\users\\user\\source\\repos\\taskpractice\\taskpractice\\service\\schedulerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|solutionrelative:taskpractice\\service\\schedulerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|c:\\users\\user\\source\\repos\\taskpractice\\taskpractice\\service\\orderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|solutionrelative:taskpractice\\service\\orderservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|c:\\users\\user\\source\\repos\\taskpractice\\taskpractice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|solutionrelative:taskpractice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|c:\\users\\user\\source\\repos\\taskpractice\\taskpractice\\model\\ordermaster.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|solutionrelative:taskpractice\\model\\ordermaster.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|c:\\users\\user\\source\\repos\\taskpractice\\taskpractice\\model\\orderdetail.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|solutionrelative:taskpractice\\model\\orderdetail.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|c:\\users\\user\\source\\repos\\taskpractice\\taskpractice\\model\\cart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|solutionrelative:taskpractice\\model\\cart.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|c:\\users\\user\\source\\repos\\taskpractice\\taskpractice\\model\\edge.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|solutionrelative:taskpractice\\model\\edge.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|c:\\users\\user\\source\\repos\\taskpractice\\taskpractice\\model\\node.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|solutionrelative:taskpractice\\model\\node.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|c:\\users\\user\\source\\repos\\taskpractice\\taskpractice\\route\\dijkstra.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C462DC6-CD94-F00E-FAAC-51A968573F3B}|TaskPractice\\TaskPractice.csproj|solutionrelative:taskpractice\\route\\dijkstra.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Cart.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\Cart.cs",
+              "RelativeDocumentMoniker": "TaskPractice\\Model\\Cart.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\Cart.cs",
+              "RelativeToolTip": "TaskPractice\\Model\\Cart.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T08:20:43.22Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Edge.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\Edge.cs",
+              "RelativeDocumentMoniker": "TaskPractice\\Model\\Edge.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\Edge.cs",
+              "RelativeToolTip": "TaskPractice\\Model\\Edge.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T07:52:45.942Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Program.cs",
+              "RelativeDocumentMoniker": "TaskPractice\\Program.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Program.cs",
+              "RelativeToolTip": "TaskPractice\\Program.cs",
+              "ViewState": "AgIAAJkAAAAAAAAAAAAAAAUAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T00:24:14.207Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "SchedulerService.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Service\\SchedulerService.cs",
+              "RelativeDocumentMoniker": "TaskPractice\\Service\\SchedulerService.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Service\\SchedulerService.cs",
+              "RelativeToolTip": "TaskPractice\\Service\\SchedulerService.cs",
+              "ViewState": "AgIAADYAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T09:29:11.897Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "OrderService.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Service\\OrderService.cs",
+              "RelativeDocumentMoniker": "TaskPractice\\Service\\OrderService.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Service\\OrderService.cs",
+              "RelativeToolTip": "TaskPractice\\Service\\OrderService.cs",
+              "ViewState": "AgIAAFwAAAAAAAAAAAAAAH0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T08:40:58.227Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "OrderMaster.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\OrderMaster.cs",
+              "RelativeDocumentMoniker": "TaskPractice\\Model\\OrderMaster.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\OrderMaster.cs",
+              "RelativeToolTip": "TaskPractice\\Model\\OrderMaster.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAowA8AAABNAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T08:35:03.474Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "OrderDetail.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\OrderDetail.cs",
+              "RelativeDocumentMoniker": "TaskPractice\\Model\\OrderDetail.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\OrderDetail.cs",
+              "RelativeToolTip": "TaskPractice\\Model\\OrderDetail.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAoAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T08:38:42.978Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Node.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\Node.cs",
+              "RelativeDocumentMoniker": "TaskPractice\\Model\\Node.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Model\\Node.cs",
+              "RelativeToolTip": "TaskPractice\\Model\\Node.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T07:52:30.492Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Dijkstra.cs",
+              "DocumentMoniker": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Route\\Dijkstra.cs",
+              "RelativeDocumentMoniker": "TaskPractice\\Route\\Dijkstra.cs",
+              "ToolTip": "C:\\Users\\USER\\source\\repos\\TaskPractice\\TaskPractice\\Route\\Dijkstra.cs",
+              "RelativeToolTip": "TaskPractice\\Route\\Dijkstra.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T07:53:00.928Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
