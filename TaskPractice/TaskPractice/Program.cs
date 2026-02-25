@@ -1,6 +1,17 @@
 ﻿using TaskPractice.Model;
+using TaskPractice.Rfid.Interface;
+using TaskPractice.Rfid.Provider;
+using TaskPractice.Rfid.Service;
 using TaskPractice.Route;
 using TaskPractice.Service;
+
+
+// DB 연결 문자열
+string connectionString = "Server=localhost;Port=3306;Database=TaskPractice;User=root;Password=1234;";
+
+// 의존성 주입
+IRfidProvider rfidProvider = new RfidMySqlProvider(connectionString);
+IRfidService rfidService = new RfidService(rfidProvider);
 
 
 // 노드 생성
@@ -79,48 +90,6 @@ var testCases = new[]
     ("IN2",  "OUT1"),  // 전체 경로
 };
 
-// 폴링 타이머로 바꿀 예정
-//foreach (var (from, to) in testCases)
-//{
-//    var path = dijkstra.GetShortestPath(from, to);
-//    Console.WriteLine($"{from} → {to}");
-//    Console.WriteLine(string.Join(" → ", path.Select(n => n.ToString())));
-//    Console.WriteLine();
-//}
-
-
-// OrderService 생성
-//var orderService = new OrderService(allNodes);
-
-// 대차 생성
-//var cart = new Cart()
-//{
-//    CartId = "CA001",
-//    FromEqpId = "IN2",
-//    ToEqpId = "OUT1",
-//    StockType = StockType.EMPTY,
-//    LocationType = LocationType.EXTERNAL,
-//    InDttm = DateTime.Now
-//};
-
-//Console.WriteLine("\n === 오더 생성 테스트 === \n");
-
-//// 오더 생성
-//var order = orderService.CreateOrder(cart);
-
-//// 구간 이동 시뮬레이션
-//if (order != null)
-//{
-//    Console.WriteLine("\n === 이동 시뮬레이션 테스트 === \n");
-
-//    foreach (var detail in order.Details.OrderBy(d => d.Seq))
-//    {
-//        orderService.DepartDetail(order.OrderId, detail.Seq);
-//        Thread.Sleep(1000);
-//        orderService.ArriveDetail(order.OrderId, detail.Seq); ;
-//        Console.WriteLine();
-//    }
-
 // OrderService 생성
 var orderService = new OrderService(allNodes);
 
@@ -157,3 +126,7 @@ while (true)
 
 schedulerService.Stop();
 Console.WriteLine("\n=== 전체 완료 ===");
+
+// RFID TEST
+rfidService.RequestRead("RFID_IN1");
+Console.WriteLine($"BUSY_STATUS: {rfidService.GetStatus("RFID_IN1", "BUSY_STATUS")}");
