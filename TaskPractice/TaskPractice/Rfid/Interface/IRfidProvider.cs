@@ -24,5 +24,11 @@ namespace TaskPractice.Rfid.Interface
        
         // 명령 등록
         int InsertRfidCommand(string eqpId, string instNo, string instValuesJsonStr, string commandType);
+
+        // PROCESSINT 상대 오래된 명령 (= 비정상) 조회
+        DataTable SelectRfidCommandTimeout(string eqpId, int timeoutSeconds);
+
+        // IF_STATUS 복수 조건 조회 (WAIT + COMMAND_TYPE)
+        DataTable SelectRfidCommandByType(string eqpId, string ifStatus, string commandType);
     }
 }

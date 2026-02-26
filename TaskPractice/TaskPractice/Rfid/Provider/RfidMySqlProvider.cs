@@ -156,7 +156,8 @@ UPDATE rfid_command
 SET
     IF_STATUS = @IF_STATUS,
     IF_MESSAGE = @IF_MESSAGE,
-    IF_CNT = IF_CNT + 1
+    IF_CNT = IF_CNT + 1,
+    IF_START_DTTM = CASE WHEN @IF_STATUS = 'PROCESSING' THEN NOW(6) ELSE IF_START_DTTM END
 WHERE EQP_ID = @EQP_ID
 AND INST_NO = @INST_NO
 ";
@@ -186,7 +187,7 @@ AND INST_NO = @INST_NO
                 conn.Open();
 
                 string sql = @"
-UPDATE rdid_eqp_status
+UPDATE rfid_eqp_status
 SET
     RESULT_VALUE = @RESULT_VALUE,
     UPDATE_DTTM = NOW(6)
@@ -207,5 +208,102 @@ AND EQP_DETAIL_ID = @EQP_DETAIL_ID
             }
             return result;
         }
+
+
+        // RRPCESSING 타임아웃 명령 조회
+        public DataTable SelectRfidCommandTimeout(string eqpId, int timeoutSeconds)
+        {
+            DataTable dt = new DataTable();
+
+            try
+            {
+                using var conn = CreateConnection();
+                conn.Open();
+
+                string sql = @"
+SELECT
+    EQP_ID,
+    INST_NO,
+    INST_VALUES_JSON_STR,
+    COMMAND_TYPE,
+    IF_STATUS,
+    IF_START_DTTM
+FROM rfid_command
+WHERE IF_STATUS = 'PROCESSING'
+AND IF_START_DTTM IS NOT NULL
+AND TIMESTAMPDIFF(SECOND, IF_START_DTTM, NOW()) >= @TIMEOUT_SEC 
+";
+                // eqpId가 있으면 조건을 추가
+                if (!string.IsNullOrEmpty(eqpId))
+                {
+                    sql += " AND EQP_ID = @EQP_ID";
+                }
+
+                using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@TIMEOUT_SEC", timeoutSeconds);
+                if (!string.IsNullOrEmpty(eqpId))
+                {
+                    cmd.Parameters.AddWithValue("@EQP_ID", eqpId);
+                }
+
+                using var adapter = new MySqlDataAdapter(cmd);
+                adapter.Fill(dt);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] SelectRfidCommandTimeout: {ex.Message}");
+                throw;
+            }
+            return dt;
+        
+        }
+
+        // WAIT 상태 명령을 타입별로 조회
+        public DataTable SelectRfidCommandByType(string eqpId, string ifStatus, string commandType)
+        {
+            DataTable dt = new DataTable();
+            try
+            {
+                using var conn = CreateConnection();
+                conn.Open();
+
+                string sql = @"
+SELECT
+    EQP_ID,
+    INST_NO,
+    INST_VALUES_JSON_STR,
+    COMMAND_TYPE,
+    IF_STATUS,
+    SAVE_DTTM
+FROM rfid_command
+WHERE IF_STATUS   = @IF_STATUS
+AND   COMMAND_TYPE = @COMMAND_TYPE
+ORDER BY SAVE_DTTM
+";
+                if (!string.IsNullOrEmpty(eqpId))
+                {
+                    sql += " AND EQP_ID = @EQP_ID";
+                }
+
+                using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@IF_STATUS", ifStatus);
+                cmd.Parameters.AddWithValue("@COMMAND_TYPE", commandType);
+                if (!string.IsNullOrEmpty(eqpId))
+                {
+                    cmd.Parameters.AddWithValue("@EQP_ID", eqpId);
+                }
+
+                using var adapter = new MySqlDataAdapter(cmd);
+                adapter.Fill(dt);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] SelectRfidCommandByType: {ex.Message}");
+                throw;
+            }
+            return dt;
+        }
+
+
     }
 }

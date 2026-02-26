@@ -1,4 +1,6 @@
-﻿using TaskPractice.Model;
+﻿using TaskPractice.Conveyor.Provider;
+using TaskPractice.Conveyor.Service;
+using TaskPractice.Model;
 using TaskPractice.Rfid.Interface;
 using TaskPractice.Rfid.Provider;
 using TaskPractice.Rfid.Service;
@@ -75,21 +77,6 @@ for (int i = 0; i < 3; i++)
     outNodes[i].Connections.Add(new Edge { To = waNodes[i], Cost = 1 + 90 });
 }
 
-// 경로 탐색 테스트
-var dijkstra = new Dijkstra(allNodes);
-
-Console.WriteLine("=== 경로 탐색 테스트 ===\n");
-
-var testCases = new[]
-{
-    ("IN1",  "ST2"),
-    ("ST3",  "PK1"),
-    ("PK2",  "QC2"),
-    ("QC1",  "WA3"),
-    ("WA2",  "OUT2"),
-    ("IN2",  "OUT1"),  // 전체 경로
-};
-
 // OrderService 생성
 var orderService = new OrderService(allNodes);
 
@@ -127,6 +114,55 @@ while (true)
 schedulerService.Stop();
 Console.WriteLine("\n=== 전체 완료 ===");
 
+// RFID 스케줄러 시작
+var rfidSchedulerService = new RfidSchedulerService(rfidProvider, rfidService);
+rfidSchedulerService.Start();
+
+// 지금은 일단 전체 완료 후 2초 대기 후 종료
+Thread.Sleep(2000);
+rfidSchedulerService.Stop();
+
 // RFID TEST
 rfidService.RequestRead("RFID_IN1");
 Console.WriteLine($"BUSY_STATUS: {rfidService.GetStatus("RFID_IN1", "BUSY_STATUS")}");
+
+// READ 명령
+rfidService.RequestRead("RFID_IN1");
+
+// WRITE 명령 (태그에 서열 정보 쓰기)
+rfidService.RequestWrite("RFID_IN1", "SEQ_001_CA001_OUT1");
+
+Console.WriteLine($"BUSY_STATUS: {rfidService.GetStatus("RFID_IN1", "BUSY_STATUS")}");
+Console.WriteLine($"RESPONSE_CODE: {rfidService.GetStatus("RFID_IN1", "RESPONSE_CODE")}");
+
+// ===== Mock PLC 서버 시작 =====
+var mockPlc9000 = new MockPlcServer(9000);
+var mockPlc9001 = new MockPlcServer(9001);
+mockPlc9000.Start();
+mockPlc9001.Start();
+
+Thread.Sleep(500); // 서버 준비 대기
+
+// ===== Conveyor Service 시작 =====
+Console.WriteLine("\n=== Conveyor Service 시작 ===\n");
+
+// Provider 생성
+var conveyorProvider = new ConveyorMySqlProvider(connectionString);
+
+// ServiceManager 생성
+var serviceManager = new ConveyorServiceManager(conveyorProvider);
+
+// PLC 연결 정보 등록 (PollingGroup, IP, Port)
+serviceManager.AddConnection("CV.01.PLC1", "127.0.0.1", 9000);
+serviceManager.AddConnection("CV.02.PLC1", "127.0.0.1", 9001);
+
+// 시작
+serviceManager.Run();
+
+Console.WriteLine("종료하려면 Enter...");
+Console.ReadLine();
+
+// 종료
+serviceManager.Stop();
+mockPlc9000.Stop();
+mockPlc9001.Stop();

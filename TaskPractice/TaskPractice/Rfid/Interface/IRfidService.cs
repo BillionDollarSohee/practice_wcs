@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace TaskPractice.Rfid.Interface
 {
     // 비즈니스 로직 담당
-    internal interface IRfidService
+    public interface IRfidService
     {
         // Read 명령 요청
         bool RequestRead(string eqpId);
