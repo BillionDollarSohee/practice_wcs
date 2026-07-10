@@ -1,5 +1,6 @@
 ﻿using EisSocketService.Data;
 using EisSocketService.Handlers;
+using EisSocketService.Host;
 using EisSocketService.Socket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -26,8 +27,12 @@ builder.Services.AddScoped<IMessageHandler, DischargedHandler>();
 builder.Services.AddScoped<MessageHandlerFactory>(sp =>
     new MessageHandlerFactory(sp.GetServices<IMessageHandler>()));
 
-// 소켓 서버를 백그라운드 서비스로 등록 - 호스트 시작 시 자동 실행
-builder.Services.AddHostedService<SocketServer>();
+// 서비스 매니저는 Singleton으로 등록 - Worker가 Run()/Stop()을 직접 호출한다
+builder.Services.AddSingleton<SocketServiceManager>();
+// 다음 단계: builder.Services.AddSingleton<ModbusServiceManager>();
+
+// Worker 하나만 HostedService로 등록 - 나머지 매니저는 Worker가 시작/종료를 위임받아 제어
+builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
 host.Run();
