@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="eis-socket-service/eis-socket-service.csproj" />
+  <Project Path="equipment-simulator/equipment-simulator.csproj" />
+</Solution>
