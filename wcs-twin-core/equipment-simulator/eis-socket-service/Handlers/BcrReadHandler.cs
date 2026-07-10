@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Text;
-using EisSocketService.Data;
-using EisSocketService.Models;
+using Database;
+using Database.Models;
 using ProtocolCore;
 
 namespace EisSocketService.Handlers
 {
     // Command 41 처리 핸들러 - BCR(바코드리더) 스캔결과 수신
-    // 실제 코드는 PId(4byte)+BcrNo(6byte)+Barcode(170byte) 바이너리 오프셋 파싱이지만,
-    // 우리 프로토콜은 텍스트 기반이라 CarID(20) 필드 하나로 단순화했다.
-    //
-    // 응답은 없음 (실제 코드도 별도 ACK 없이 상태 저장만 수행)
     public class BcrReadHandler : IMessageHandler
     {
         public string Command => "41";

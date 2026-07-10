@@ -1,4 +1,8 @@
 <Solution>
+  <Project Path="database/database.csproj" />
   <Project Path="eis-socket-service/eis-socket-service.csproj" />
   <Project Path="equipment-simulator/equipment-simulator.csproj" />
+  <Project Path="modbus-service/modbus-service.csproj" />
+  <Project Path="rfid-controll-service/rfid-controll-service.csproj" />
+  <Project Path="rfid-modbus-simulator/rfid-modbus-simulator.csproj" />
 </Solution>

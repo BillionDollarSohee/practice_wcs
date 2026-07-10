@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ProtocolCore
 {
@@ -14,7 +13,7 @@ namespace ProtocolCore
         public const byte ETX = 0x03;
         public const byte SEP = 0x60;
 
-        // 필드값을 지정된 바이트 길이도 오른쪽 공백 패딩 (길이 초과시 자름)
+        // 필드값을 지정된 바이트 길이로 오른쪽 공백 패딩 (길이 초과 시 자름)
         public static string PadField(string value, int width)
         {
             if (value == null)
@@ -42,28 +41,26 @@ namespace ProtocolCore
             }
 
             byte[] body = Encoding.ASCII.GetBytes(stringBuilder.ToString());
-            byte[] fream = new byte[body.Length + 2];
-            fream[0] = STX;
-            Array.Copy(body, 0, fream, 1, body.Length);
-            fream[fream.Length - 1] = ETX;
-            return fream;
+            byte[] frame = new byte[body.Length + 2];
+            frame[0] = STX;
+            Array.Copy(body, 0, frame, 1, body.Length);
+            frame[frame.Length - 1] = ETX;
+            return frame;
         }
 
         // 누적 버퍼에서 STX~ETX 프레임 하나를 꺼낸다. 아직 미완이면 null
-        // 꺼낸 만큼은 buffer에서 제거한다.
         public static byte[] ExtractFrame(List<byte> buffer)
         {
             int stxIndex = buffer.IndexOf(STX);
             if (stxIndex < 0)
             {
-                buffer.Clear(); //STX가 없는 잡음데이터는 버림
+                buffer.Clear();
                 return null;
             }
 
             int etxIndex = buffer.IndexOf(ETX, stxIndex + 1);
             if (etxIndex < 0)
             {
-                // 아직 etx가 없으면 STX 이전 잡음만 제거하고 다음 수신 대기
                 if (stxIndex > 0)
                 {
                     buffer.RemoveRange(0, stxIndex);

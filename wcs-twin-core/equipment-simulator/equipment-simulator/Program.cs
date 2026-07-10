@@ -9,10 +9,6 @@ namespace PlcSimulator
     //   Command 03 : 설비 -> 서버, 대차정보 요청
     //   Command 01 : 서버 -> 설비, 대차정보 응답 (설비는 이 응답을 기다림)
     //   Command 11 : 설비 -> 서버, 검사완료
-    //
-    // 실제 스펙(STX/ETX + 고정길이 필드)을 그대로 따른다.
-    // 미니 프로젝트라 BatchNo/BodyNo/CarType/Item 상세 데이터는 비워서 보내지만,
-    // 자리(바이트 수)는 실제 스펙과 동일하게 유지한다.
     class Program
     {
         private const string ServerIp = "127.0.0.1";
@@ -52,17 +48,13 @@ namespace PlcSimulator
             }
         }
 
-        // 대차 1대에 대한 전체 검사 사이클 진행
-        // 요청(03) -> 응답대기(01) -> 완료(11) 순서로 진행
         private static void RunOneCartCycle(NetworkStream stream)
         {
             string cartId = PickRandomCartId();
 
-            // Command 03 - 대차정보요청 (CarID 20바이트 고정)
             byte[] requestFrame = ProtocolCodec.BuildFrame("03", ProtocolCodec.PadField(cartId, 20));
             SendFrame(stream, requestFrame);
 
-            // Command 01 - 서버 응답 대기
             byte[] responseFrame = ReceiveFrame(stream);
             if (responseFrame == null)
             {
@@ -70,7 +62,6 @@ namespace PlcSimulator
                 return;
             }
 
-            // 응답 필드 순서: CarID, BatchNo, BodyNo, CarType, LineType, ItemCount, Item, Result, ErrorCode
             var (command, fields) = ProtocolCodec.ParseFrame(responseFrame);
             string lineType = fields.Length > 4 ? fields[4].Trim() : "";
             string result = fields.Length > 7 ? fields[7].Trim() : "";
@@ -83,13 +74,8 @@ namespace PlcSimulator
                 return;
             }
 
-            // 검사 진행 시뮬레이션
             Thread.Sleep(1000);
 
-            // Command 11 - 검사완료
-            // 필드 순서: CarID, ItemLength, BatchNo, BodyNo, CarType, LineType,
-            //           년월일시분초, Item개수, Item, ImgPath, 하부대차ImgFile,
-            //           하부대차판정결과, 비전강제완료여부
             string judgment = GenerateRandomResult() == "OK" ? "1" : "0";
             string dateTime = DateTime.Now.ToString("yyyyMMddHHmmss");
             byte[] completeFrame = ProtocolCodec.BuildFrame(
@@ -131,7 +117,6 @@ namespace PlcSimulator
             Console.WriteLine($"전송 (bytes: {frame.Length})");
         }
 
-        // STX~ETX 프레임 하나가 완성될 때까지 읽어서 반환
         private static byte[] ReceiveFrame(NetworkStream stream)
         {
             List<byte> buffer = new List<byte>();

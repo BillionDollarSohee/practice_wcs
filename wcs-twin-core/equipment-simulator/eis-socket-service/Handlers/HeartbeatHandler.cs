@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ProtocolCore;
+﻿using ProtocolCore;
 
 namespace EisSocketService.Handlers
 {
+    // Command 00 처리 핸들러 - Heartbeat
     public class HeartbeatHandler : IMessageHandler
     {
         public string Command => "00";
@@ -14,10 +10,9 @@ namespace EisSocketService.Handlers
 
         public byte[] Handle(byte[] requestFrame)
         {
-            // 응답 필드: STATUS(2) - 00 = 정상
-            return ProtocolCore.ProtocolCodec.BuildFrame(
+            return ProtocolCodec.BuildFrame(
                 "00",
-                ProtocolCore.ProtocolCodec.PadField("00", 2)
+                ProtocolCodec.PadField("00", 2)
             );
         }
     }

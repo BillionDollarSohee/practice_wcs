@@ -1,27 +1,26 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using ProtocolCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using EisSocketService.Handlers;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using ProtocolCore;
 
 namespace EisSocketService.Socket
 {
-    // Vision 소켓 통신을 관리하는 매니저
-    // 매니저가 늘어나도 Worker에서 Run()/Stop()으로 제어한다.
+    // Vision 소켓 통신을 관리하는 매니저 - Worker가 Run()/Stop()으로 제어
     public class SocketServiceManager
     {
         private readonly int _port;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<SocketServiceManager> _logger;
-        private CancellationTokenSource _cancellationTokenSource;
+
+        private CancellationTokenSource _cts;
         private Task _listenTask;
 
         public SocketServiceManager(IServiceProvider serviceProvider, ILogger<SocketServiceManager> logger, IConfiguration configuration)
@@ -29,22 +28,18 @@ namespace EisSocketService.Socket
             _serviceProvider = serviceProvider;
             _logger = logger;
             _port = int.Parse(configuration["SocketServer:Port"] ?? "9000");
-
         }
 
-        // Worker에서 호출 - 리스너 루프를 백그라운드로 띄우고 즉시 반환
         public void Run()
         {
-            _cancellationTokenSource = new CancellationTokenSource();
-            _listenTask = Task.Run(() => ListenLoopAsync(_cancellationTokenSource.Token));
+            _cts = new CancellationTokenSource();
+            _listenTask = Task.Run(() => ListenLoopAsync(_cts.Token));
             _logger.LogInformation("SocketServiceManager 시작 - 포트{Port}", _port);
-
         }
 
-        // Worker에서 호출 - 취소 신호만 보내고 실제 종료는 리스너 루프가 알아서 정리
         public void Stop()
         {
-            _cancellationTokenSource?.Cancel();
+            _cts?.Cancel();
             _logger.LogInformation("SocketServiceManager 정지 요청됨");
         }
 
@@ -52,20 +47,19 @@ namespace EisSocketService.Socket
         {
             TcpListener listener = new TcpListener(IPAddress.Any, _port);
             listener.Start();
-            _logger.LogInformation("EIS 소켓 서비스 시작 - 포트{PORT} 대기중 (STX/ETX 프로토콜)", _port);
+            _logger.LogInformation("EIS 소켓 서비스 시작 - 포트{Port} 대기중 (STX/ETX 프로토콜)", _port);
 
             try
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    TcpClient tcpClient = await listener.AcceptTcpClientAsync(stoppingToken);
-                    _logger.LogInformation("설비 접속 시작");
-                    _ = HandleClientAsync(tcpClient, stoppingToken);
+                    TcpClient client = await listener.AcceptTcpClientAsync(stoppingToken);
+                    _logger.LogInformation("설비 접속시작");
+                    _ = HandleClientAsync(client, stoppingToken);
                 }
             }
             catch (OperationCanceledException)
-            { 
-                // Stop() 호출로 인한 정상 종료
+            {
             }
             finally
             {
@@ -74,15 +68,15 @@ namespace EisSocketService.Socket
             }
         }
 
-        private async Task HandleClientAsync(TcpClient tcpClient, CancellationToken stoppingToken)
+        private async Task HandleClientAsync(TcpClient client, CancellationToken stoppingToken)
         {
-            using (tcpClient)
-            using (NetworkStream stream = tcpClient.GetStream())
-            { 
+            using (client)
+            using (NetworkStream stream = client.GetStream())
+            {
                 List<byte> buffer = new List<byte>();
                 byte[] readBuffer = new byte[1024];
 
-                while (tcpClient.Connected && !stoppingToken.IsCancellationRequested)
+                while (client.Connected && !stoppingToken.IsCancellationRequested)
                 {
                     int readCount;
                     try
@@ -91,11 +85,18 @@ namespace EisSocketService.Socket
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning("수신 오류 : {Message}, ex.Message");
+                        _logger.LogWarning("수신 오류: {Message}", ex.Message);
+                        break;
+                    }
+
+                    if (readCount == 0)
+                    {
+                        _logger.LogInformation("설비 접속 종료");
                         break;
                     }
 
                     buffer.AddRange(new ArraySegment<byte>(readBuffer, 0, readCount));
+
                     byte[] frame;
                     while ((frame = ProtocolCodec.ExtractFrame(buffer)) != null)
                     {
@@ -122,16 +123,16 @@ namespace EisSocketService.Socket
 
                 if (!factory.HasHandler(command, "RECEIVE"))
                 {
-                    _logger.LogWarning("처리가능한 핸들러없음 - COMMAND: {command}", command);
+                    _logger.LogWarning("처리 가능한 핸들러 없음 - COMMAND: {Command}", command);
                     return null;
                 }
 
-                var handler = factory.GetMessageHandler(command, "RECEIVE");
+                var handler = factory.GetHandler(command, "RECEIVE");
                 return handler.Handle(frame);
             }
             catch (Exception ex)
             {
-                _logger.LogError("메세지 처리 오류: Message}", ex.ToString());
+                _logger.LogError("메시지 처리 오류: {Message}", ex.ToString());
                 return null;
             }
         }

@@ -1,14 +1,10 @@
-﻿using EisSocketService.Models;
+﻿using Database.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EisSocketService.Data
+namespace Database
 {
     // wcs_twin 데이터베이스 연결용 DbContext
+    // 모든 서비스(Vision, Modbus, RFID)가 이 프로젝트를 참조해서 직접 사용한다
     public class WcsTwinContext : DbContext
     {
         public DbSet<CartMaster> CartMasters { get; set; }
@@ -19,7 +15,6 @@ namespace EisSocketService.Data
         {
         }
 
-        // 실제 DB는 테이블/컬럼명이 대문자이므로 명시적으로 매핑
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<CartMaster>(entity =>
