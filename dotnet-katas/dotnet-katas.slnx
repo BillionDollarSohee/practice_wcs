@@ -1,8 +1,15 @@
 <Solution>
   <Folder Name="/01-timer-pattern/">
     <Project Path="01-timer-pattern/TimerPatternKata.csproj" />
+    <File Path="01-timer-pattern/README.md" />
   </Folder>
   <Folder Name="/02-async-worker-pattern/">
     <Project Path="02-async-worker-pattern/AsyncWorkerKata.csproj" />
+    <File Path="02-async-worker-pattern/README.md" />
+  </Folder>
+  <Folder Name="/03-tcp-echo/">
+    <Project Path="03-tcp-echo/EchoClient/EchoClient.csproj" />
+    <Project Path="03-tcp-echo/EchoServer/EchoServer.csproj" />
+    <File Path="03-tcp-echo/README.md" />
   </Folder>
 </Solution>

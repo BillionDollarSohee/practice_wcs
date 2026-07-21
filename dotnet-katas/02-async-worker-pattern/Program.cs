@@ -52,14 +52,26 @@ class Program
 
         // TODO 1: 1부터 TOTAL_ITEMS까지의 정수를 담은 ConcurrentQueue<int> 를 만드세요.
         ConcurrentQueue<int> queue = new ConcurrentQueue<int>();
-        throw new NotImplementedException("TODO 1: 큐에 1~TOTAL_ITEMS 채우기");
+        for (int i = 1; i <= TOTAL_ITEMS; i++)
+        {
+            queue.Enqueue(i);
+        }
 
         // TODO 2: CANCEL_AFTER_MS 뒤 자동으로 취소되는 CancellationTokenSource를 만드세요.
         //         (힌트: new CancellationTokenSource(TimeSpan) 생성자를 쓰면 Timer 없이도 자동취소가 됨)
+        CancellationTokenSource tokenSource = new CancellationTokenSource(CANCEL_AFTER_MS);
+        CancellationToken token = tokenSource.Token;
 
         // TODO 3: WORKER_COUNT개의 Task를 Task.Run(() => WorkerLoop(...)) 으로 생성하세요.
+        List<Task> tasks = new List<Task>();
+        for (int i = 0; i < WORKER_COUNT; i++)
+        {
+            int workerId = i + 1;
+            tasks.Add(Task.Run(() => WorkerLoop(workerId, queue, token)));
+        }
 
         // TODO 4: Task.WhenAll로 전체 워커가 끝날 때까지 await 하세요.
+        await Task.WhenAll(tasks);
 
         Console.WriteLine();
         Console.WriteLine($"처리 완료: {_processedCount} / {TOTAL_ITEMS}");
@@ -77,15 +89,36 @@ class Program
         //   - token이 취소 요청되지 않았고
         //   - queue.TryDequeue로 항목을 하나 꺼낼 수 있는 동안
         //   반복해야 합니다. (VisionImageMigrationService.ProcessWorker의 while 조건과 비슷한 모양)
+        while (!token.IsCancellationRequested && queue.TryDequeue(out int itemId))
+        {
 
-        // TODO 6: 루프 안에서
-        //   1) 꺼낸 itemId를 로그로 출력 (예: "[Worker{workerId}] 처리 중: item {itemId}")
-        //   2) await Task.Delay(FAKE_WORK_MS, token) 으로 "작업 시간"을 흉내
-        //      (주의: token을 Task.Delay에 넘기면 취소 시 즉시 예외로 빠져나옵니다.
-        //       그 예외(TaskCanceledException/OperationCanceledException)를 어떻게 처리할지 고민해보세요 -
-        //       실무 코드처럼 "이 항목만 skip"하고 continue 할지, 루프를 바로 빠져나올지는 여러분이 결정하세요.)
-        //   3) 처리 완료 시 _processedCount 증가 (TODO 0에서 고른 방법으로)
+            // TODO 6: 루프 안에서
+            //   1) 꺼낸 itemId를 로그로 출력 (예: "[Worker{workerId}] 처리 중: item {itemId}")
+            //   2) await Task.Delay(FAKE_WORK_MS, token) 으로 "작업 시간"을 흉내
+            //      (주의: token을 Task.Delay에 넘기면 취소 시 즉시 예외로 빠져나옵니다.
+            //       그 예외(TaskCanceledException/OperationCanceledException)를 어떻게 처리할지 고민해보세요 -
+            //       실무 코드처럼 "이 항목만 skip"하고 continue 할지, 루프를 바로 빠져나올지는 여러분이 결정하세요.)
+            //   3) 처리 완료 시 _processedCount 증가 (TODO 0에서 고른 방법으로)
+            Console.WriteLine($"[Worker{workerId}] 처리 중: item {itemId}");
 
-        Console.WriteLine($"[Worker{workerId}] 종료 (취소여부: {token.IsCancellationRequested})");
+            try
+            {
+                await Task.Delay(FAKE_WORK_MS, token);
+                Interlocked.Increment(ref _processedCount);
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"[Worker{workerId}] 취소됨: item {itemId}");
+            }
+            finally
+            {
+                
+            }
+
+            if (token.IsCancellationRequested)
+            {
+                Console.WriteLine($"[Worker{workerId}] 종료 (취소여부: {token.IsCancellationRequested})");
+            }
+        }
     }
 }
