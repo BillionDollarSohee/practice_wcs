@@ -43,9 +43,18 @@ class TickCounterService
     public void Start()
     {
         // TODO 1: _timer = new Timer(OnTick) 로 타이머를 생성하세요.
+        _timer = new Timer(OnTick);
+
         // TODO 2: _timer.Change(?, Timeout.Infinite) 로 최초 실행을 예약하세요.
         //         (Period 자리는 항상 Timeout.Infinite - self-reschedule 패턴이니까)
-        throw new NotImplementedException("TODO 1,2: 타이머 생성 및 최초 예약");
+        try
+        {
+            _timer.Change(0, Timeout.Infinite);
+        }
+        catch
+        {
+            throw new NotImplementedException("TODO 1,2: 타이머 생성 및 최초 예약");
+        }
     }
 
     /// <summary>
@@ -60,12 +69,17 @@ class TickCounterService
         {
             if (_timer == null) return;
             // TODO 3: _timer.Change(Timeout.Infinite, Timeout.Infinite) 로 재실행을 잠시 멈추세요.
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
         try
         {
             // TODO 4: _tickCount 증가시키고 "Tick {N}" 콘솔 출력
-            throw new NotImplementedException("TODO 4: 실제 작업(틱 증가 + 출력)");
+            if (!_stopRequested)
+            {
+                _tickCount++;
+                Console.WriteLine($"Tick{_tickCount}");
+            }
         }
         finally
         {
@@ -74,10 +88,13 @@ class TickCounterService
                 if (!_stopRequested && _timer != null)
                 {
                     // TODO 5: _timer.Change(INTERVAL_MS, Timeout.Infinite) 로 다음 실행 예약
+                    _timer.Change(1000, Timeout.Infinite);
                 }
                 else if (_stopRequested && _timer != null)
                 {
                     // TODO 6: 타이머 Dispose 하고 _timer = null 로 정리
+                    _timer.Dispose();
+                    _timer= null;
                     Console.WriteLine("[TickCounterService] 타이머 종료됨.");
                 }
             }
@@ -90,8 +107,8 @@ class TickCounterService
     /// </summary>
     public void Stop()
     {
-        // TODO 7: _stopRequested = true 로 설정
-        throw new NotImplementedException("TODO 7: 정지 플래그 설정");
+        _stopRequested = true;
+        Console.WriteLine("정지");
     }
 }
 
@@ -115,5 +132,6 @@ class Program
         // TODO 8 (선택, 검증용): Stop() 호출 직후 바로 프로그램이 끝나버리면
         //         "콜백이 끝난 뒤 안전 종료"를 눈으로 확인하기 어렵습니다.
         //         잠깐 대기(Thread.Sleep 등)를 넣어서 종료 로그가 찍히는 걸 확인해보세요.
+        Thread.Sleep(3000);
     }
 }
