@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="wcs.backend.wcs.mapper.DashboardMapper">
+
+    <select id="selectCartStatusList" resultType="wcs.backend.wcs.vo.CartStatusVo">
+        SELECT
+            C.CART_ID          AS cartId
+             , C.CART_BARCODE     AS cartBarcode
+             , C.LINE_TYPE        AS lineType
+             , C.CREATE_DTTM      AS createDttm
+             , H.STATUS_TYPE      AS latestStatusType
+             , H.STATUS           AS latestStatus
+             , H.CREATE_DTTM      AS latestStatusDttm
+        FROM CART_MASTER C
+                 LEFT JOIN (
+            SELECT
+                CART_ID
+                 , STATUS_TYPE
+                 , STATUS
+                 , CREATE_DTTM
+                 , ROW_NUMBER() OVER (PARTITION BY CART_ID ORDER BY CREATE_DTTM DESC, HIST_ID DESC) AS RN
+            FROM EQUIPMENT_STATUS_HIST
+        ) H
+                           ON C.CART_ID = H.CART_ID
+                               AND H.RN = 1
+        ORDER BY C.CART_ID
+    </select>
+
+    <select id="selectRecentStatusHist" resultType="wcs.backend.wcs.vo.EquipmentStatusHistVo">
+        SELECT
+            HIST_ID       AS histId
+             , EQP_ID        AS eqpId
+             , STATUS_TYPE   AS statusType
+             , CART_ID       AS cartId
+             , STATUS        AS status
+             , RESULT_JSON   AS resultJson
+             , CREATE_DTTM   AS createDttm
+        FROM EQUIPMENT_STATUS_HIST
+        ORDER BY CREATE_DTTM DESC, HIST_ID DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectRecentVisionResults" resultType="wcs.backend.wcs.vo.VisionResultVo">
+        SELECT
+            RESULT_ID       AS resultId
+             , CART_ID         AS cartId
+             , OVERALL_RESULT  AS overallResult
+             , INSPECT_DTTM    AS inspectDttm
+        FROM VISION_RESULT
+        ORDER BY INSPECT_DTTM DESC
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insertAlarmClear">
+        INSERT INTO EQUIPMENT_STATUS_HIST (EQP_ID, STATUS_TYPE, CART_ID, STATUS, RESULT_JSON, CREATE_DTTM)
+        VALUES ('MANUAL.ALARM.CLEAR', 'RFID_ALARM', #{cartId}, 'CLEARED', '관리자 알람 해제', NOW())
+    </insert>
+
+</mapper>

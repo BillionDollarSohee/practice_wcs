@@ -10,10 +10,10 @@ namespace EisSocketService.Handlers
         public string Command => "51";
         public string Direction => "SEND";
 
-        public byte[] Handle(byte[] requestFrame)
+        public Task<byte[]> Handle(byte[] requestFrame)
         {
             Console.WriteLine("목적지 지시 송신 완료 로그 (자리표시자 - 아직 실제 송신 트리거 없음)");
-            return null;
+            return Task.FromResult<byte[]>(null);
         }
     }
 }

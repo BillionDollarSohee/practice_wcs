@@ -1,7 +1,73 @@
-# Visual Studio
+##############################
+# C# / .NET (Visual Studio)
+##############################
 .vs/
 *.user
+*.suo
+*.userosscache
+*.sln.docstates
 
 # Build outputs
 **/bin/
 **/obj/
+
+# Rider / VS Code
+.idea/
+*.swp
+
+##############################
+# Java / Gradle
+##############################
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IDE
+.idea/
+*.iml
+*.iws
+out/
+.settings/
+.classpath
+.project
+bin/
+
+# Spring Boot
+HELP.md
+
+##############################
+# Node / Vue / Vite
+##############################
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# 환경변수 파일 (비밀번호 등 민감정보 포함 가능)
+.env
+.env.*
+!.env.example
+
+# 로그
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 에디터
+.vscode/*
+!.vscode/extensions.json
+
+##############################
+# OS
+##############################
+.DS_Store
+Thumbs.db
+
+##############################
+# 공통 - appsettings/application.yml 등 민감정보
+##############################
+/appsettings.json
+/application.yml

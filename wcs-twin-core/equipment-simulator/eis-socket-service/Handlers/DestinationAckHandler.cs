@@ -19,7 +19,7 @@ namespace EisSocketService.Handlers
             _context = context;
         }
 
-        public byte[] Handle(byte[] requestFrame)
+        public Task<byte[]> Handle(byte[] requestFrame)
         {
             var (_, fields) = ProtocolCodec.ParseFrame(requestFrame);
             string cartId = fields[0].Trim();
@@ -38,7 +38,7 @@ namespace EisSocketService.Handlers
 
             Console.WriteLine($"목적지 ACK 저장 완료 - CartId: {cartId}, DestinationNo: {destinationNo}");
 
-            return null;
+            return Task.FromResult<byte[]>(null);
         }
     }
 }

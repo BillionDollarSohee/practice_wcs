@@ -100,7 +100,8 @@ namespace EisSocketService.Socket
                     byte[] frame;
                     while ((frame = ProtocolCodec.ExtractFrame(buffer)) != null)
                     {
-                        byte[] response = ProcessFrame(frame);
+                        // RFID 확인/기록 때문에 처리 시간이 길어질 수 있어서 await로 기다림
+                        byte[] response = await ProcessFrameAsync(frame);
                         if (response != null)
                         {
                             await stream.WriteAsync(response, 0, response.Length, stoppingToken);
@@ -111,7 +112,7 @@ namespace EisSocketService.Socket
             }
         }
 
-        private byte[] ProcessFrame(byte[] frame)
+        private async Task<byte[]> ProcessFrameAsync(byte[] frame)
         {
             try
             {
@@ -128,7 +129,7 @@ namespace EisSocketService.Socket
                 }
 
                 var handler = factory.GetHandler(command, "RECEIVE");
-                return handler.Handle(frame);
+                return await handler.Handle(frame);
             }
             catch (Exception ex)
             {

@@ -8,12 +8,13 @@ namespace EisSocketService.Handlers
         public string Command => "00";
         public string Direction => "RECEIVE";
 
-        public byte[] Handle(byte[] requestFrame)
+        public Task<byte[]> Handle(byte[] requestFrame)
         {
-            return ProtocolCodec.BuildFrame(
+            byte[] response = ProtocolCodec.BuildFrame(
                 "00",
                 ProtocolCodec.PadField("00", 2)
             );
+            return Task.FromResult(response);
         }
     }
 }

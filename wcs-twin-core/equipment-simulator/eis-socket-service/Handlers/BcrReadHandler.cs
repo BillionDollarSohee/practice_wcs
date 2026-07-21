@@ -19,7 +19,7 @@ namespace EisSocketService.Handlers
             _context = context;
         }
 
-        public byte[] Handle(byte[] requestFrame)
+        public Task<byte[]> Handle(byte[] requestFrame)
         {
             var (_, fields) = ProtocolCodec.ParseFrame(requestFrame);
             string cartId = fields[0].Trim();
@@ -37,7 +37,7 @@ namespace EisSocketService.Handlers
 
             Console.WriteLine($"BCR 스캔 저장 완료 - CartId: {cartId}");
 
-            return null;
+            return Task.FromResult<byte[]>(null);
         }
     }
 }

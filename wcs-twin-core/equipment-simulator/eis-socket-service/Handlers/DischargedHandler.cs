@@ -19,7 +19,7 @@ namespace EisSocketService.Handlers
             _context = context;
         }
 
-        public byte[] Handle(byte[] requestFrame)
+        public Task<byte[]> Handle(byte[] requestFrame)
         {
             var (_, fields) = ProtocolCodec.ParseFrame(requestFrame);
             string cartId = fields[0].Trim();
@@ -39,7 +39,7 @@ namespace EisSocketService.Handlers
 
             Console.WriteLine($"배출완료 저장 - CartId: {cartId}, DestinationNo: {destinationNo}, CompletedCd: {completedCd}");
 
-            return null;
+            return Task.FromResult<byte[]>(null);
         }
     }
 }

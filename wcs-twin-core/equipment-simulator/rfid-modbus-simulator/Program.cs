@@ -1,4 +1,4 @@
-﻿using ModbusCore;
+using ModbusCore;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -9,9 +9,30 @@ using System.Threading.Tasks;
 namespace RfidModbusSimulator
 {
     // 가짜 UHF RFID 리더 - Modbus TCP 슬레이브(서버) 역할
+    //
+    // 트림/파이널/도어 검사대는 각자 물리적으로 독립된 RFID 리더/라이터를 쓰므로,
+    // 포트별로 완전히 독립된 레지스터 상태를 갖는 MockRfidReader 인스턴스를 라인별로 하나씩 띄운다.
     class Program
     {
-        private const int ListenPort = 5020;
+        static async Task Main(string[] args)
+        {
+            Console.WriteLine("가짜 UHF RFID 리더 시뮬레이터 시작 (Modbus TCP 슬레이브, 라인별 3대)");
+
+            var readers = new[]
+            {
+                new MockRfidReader("TR", 101),
+                new MockRfidReader("FL", 51),
+                new MockRfidReader("DR", 71)
+            };
+
+            await Task.WhenAll(Array.ConvertAll(readers, r => r.RunAsync()));
+        }
+    }
+
+    // 리더 1대(=검사대 1개 라인)를 표현한다. 레지스터 상태를 자기 안에 들고 있어서
+    // 다른 라인의 리더와 절대 register를 공유하지 않는다.
+    class MockRfidReader
+    {
         private const int CH_RESPONSE_CODE = 0;
         private const int CH_BUSY = 1;
         private const int CH_LENGTH = 2;
@@ -19,27 +40,33 @@ namespace RfidModbusSimulator
         private const int CH_ERROR_CODE = 6;
         private const int CH_READ_DATA_START = 11;
 
-        private static readonly ushort[] HoldingRegisters = new ushort[1000];
-        private static readonly ushort[] InputRegisters = new ushort[1000];
-        private static readonly object RegisterLock = new object();
+        private readonly string _lineType;
+        private readonly int _port;
+        private readonly ushort[] _holdingRegisters = new ushort[1000];
+        private readonly ushort[] _inputRegisters = new ushort[1000];
+        private readonly object _registerLock = new object();
 
-        static async Task Main(string[] args)
+        public MockRfidReader(string lineType, int port)
         {
-            Console.WriteLine("가짜 UHF RFID 리더 시뮬레이터 시작 (Modbus TCP 슬레이브)");
-            Console.WriteLine($"대기 포트: {ListenPort}");
+            _lineType = lineType;
+            _port = port;
+        }
 
-            TcpListener listener = new TcpListener(IPAddress.Any, ListenPort);
+        public async Task RunAsync()
+        {
+            TcpListener listener = new TcpListener(IPAddress.Any, _port);
             listener.Start();
+            Console.WriteLine($"[{_lineType}] 리더 대기 포트: {_port}");
 
             while (true)
             {
                 TcpClient client = await listener.AcceptTcpClientAsync();
-                Console.WriteLine("WCS(마스터) 접속됨");
+                Console.WriteLine($"[{_lineType}] WCS(마스터) 접속됨");
                 _ = HandleClientAsync(client);
             }
         }
 
-        private static async Task HandleClientAsync(TcpClient client)
+        private async Task HandleClientAsync(TcpClient client)
         {
             using (client)
             using (NetworkStream stream = client.GetStream())
@@ -78,11 +105,11 @@ namespace RfidModbusSimulator
                         }
                     }
                 }
-                Console.WriteLine("WCS 접속 종료");
+                Console.WriteLine($"[{_lineType}] WCS 접속 종료");
             }
         }
 
-        private static byte[] ProcessRequest(byte[] frame)
+        private byte[] ProcessRequest(byte[] frame)
         {
             var (transactionId, unitId, functionCode, pdu) = ModbusCodec.ParseFrame(frame);
 
@@ -91,20 +118,20 @@ namespace RfidModbusSimulator
                 case ModbusCodec.FC_READ_HOLDING_REGISTERS:
                     {
                         var (start, qty) = ModbusCodec.ParseReadRequest(pdu);
-                        ushort[] values = ReadRegisters(HoldingRegisters, start, qty);
+                        ushort[] values = ReadRegisters(_holdingRegisters, start, qty);
                         return ModbusCodec.BuildReadRegistersResponse(transactionId, unitId, functionCode, values);
                     }
                 case ModbusCodec.FC_READ_INPUT_REGISTERS:
                     {
                         var (start, qty) = ModbusCodec.ParseReadRequest(pdu);
-                        ushort[] values = ReadRegisters(InputRegisters, start, qty);
+                        ushort[] values = ReadRegisters(_inputRegisters, start, qty);
                         return ModbusCodec.BuildReadRegistersResponse(transactionId, unitId, functionCode, values);
                     }
                 case ModbusCodec.FC_WRITE_MULTIPLE_REGISTERS:
                     {
                         var (start, values) = ModbusCodec.ParseWriteMultipleRequest(pdu);
-                        WriteRegisters(HoldingRegisters, start, values);
-                        Console.WriteLine($"[FC10] Holding Register 쓰기 - Start:{start}, CommandCode:{values[0]}");
+                        WriteRegisters(_holdingRegisters, start, values);
+                        Console.WriteLine($"[{_lineType}][FC10] Holding Register 쓰기 - Start:{start}, CommandCode:{values[0]}");
 
                         if (start == 0)
                         {
@@ -114,14 +141,14 @@ namespace RfidModbusSimulator
                         return ModbusCodec.BuildWriteMultipleRegistersResponse(transactionId, unitId, start, (ushort)values.Length);
                     }
                 default:
-                    Console.WriteLine($"지원하지 않는 FunctionCode: 0x{functionCode:X2}");
+                    Console.WriteLine($"[{_lineType}] 지원하지 않는 FunctionCode: 0x{functionCode:X2}");
                     return null;
             }
         }
 
-        private static ushort[] ReadRegisters(ushort[] source, ushort start, ushort qty)
+        private ushort[] ReadRegisters(ushort[] source, ushort start, ushort qty)
         {
-            lock (RegisterLock)
+            lock (_registerLock)
             {
                 ushort[] result = new ushort[qty];
                 Array.Copy(source, start, result, 0, qty);
@@ -129,70 +156,70 @@ namespace RfidModbusSimulator
             }
         }
 
-        private static void WriteRegisters(ushort[] target, ushort start, ushort[] values)
+        private void WriteRegisters(ushort[] target, ushort start, ushort[] values)
         {
-            lock (RegisterLock)
+            lock (_registerLock)
             {
                 Array.Copy(values, 0, target, start, values.Length);
             }
         }
 
-        private static async Task SimulateCommandExecutionAsync(ushort commandCode)
+        private async Task SimulateCommandExecutionAsync(ushort commandCode)
         {
             if (commandCode == 0)
             {
-                lock (RegisterLock)
+                lock (_registerLock)
                 {
-                    InputRegisters[CH_RESPONSE_CODE] = 0;
-                    InputRegisters[CH_BUSY] = 0;
-                    InputRegisters[CH_ERROR_STATUS] = 0;
+                    _inputRegisters[CH_RESPONSE_CODE] = 0;
+                    _inputRegisters[CH_BUSY] = 0;
+                    _inputRegisters[CH_ERROR_STATUS] = 0;
                 }
-                Console.WriteLine("[리더] 준비 명령 처리 - 버퍼 초기화");
+                Console.WriteLine($"[{_lineType}][리더] 준비 명령 처리 - 버퍼 초기화");
                 return;
             }
 
-            lock (RegisterLock)
+            lock (_registerLock)
             {
-                InputRegisters[CH_BUSY] = 1;
+                _inputRegisters[CH_BUSY] = 1;
             }
-            Console.WriteLine($"[리더] Command {commandCode} 처리 시작 (Busy=1)");
+            Console.WriteLine($"[{_lineType}][리더] Command {commandCode} 처리 시작 (Busy=1)");
 
             await Task.Delay(1000);
 
             Random random = new Random();
             bool isTagDetected = random.Next(0, 10) < 8;
 
-            lock (RegisterLock)
+            lock (_registerLock)
             {
-                InputRegisters[CH_BUSY] = 0;
+                _inputRegisters[CH_BUSY] = 0;
 
                 if (!isTagDetected)
                 {
-                    InputRegisters[CH_ERROR_STATUS] = 1;
-                    InputRegisters[CH_ERROR_CODE] = 0x4006;
-                    Console.WriteLine("[리더] 태그 감지 실패 (Error Code: 0x4006)");
+                    _inputRegisters[CH_ERROR_STATUS] = 1;
+                    _inputRegisters[CH_ERROR_CODE] = 0x4006;
+                    Console.WriteLine($"[{_lineType}][리더] 태그 감지 실패 (Error Code: 0x4006)");
                     return;
                 }
 
-                InputRegisters[CH_ERROR_STATUS] = 0;
+                _inputRegisters[CH_ERROR_STATUS] = 0;
 
                 if (commandCode == 2)
                 {
-                    InputRegisters[CH_RESPONSE_CODE] = 2;
+                    _inputRegisters[CH_RESPONSE_CODE] = 2;
                     string dummyEpc = ("EPC" + random.Next(100000, 999999)).PadRight(24, ' ');
                     byte[] epcBytes = Encoding.ASCII.GetBytes(dummyEpc);
-                    InputRegisters[CH_LENGTH] = (ushort)epcBytes.Length;
+                    _inputRegisters[CH_LENGTH] = (ushort)epcBytes.Length;
                     for (int i = 0; i < epcBytes.Length / 2; i++)
                     {
                         ushort word = (ushort)((epcBytes[i * 2] << 8) | epcBytes[i * 2 + 1]);
-                        InputRegisters[CH_READ_DATA_START + i] = word;
+                        _inputRegisters[CH_READ_DATA_START + i] = word;
                     }
-                    Console.WriteLine($"[리더] Read 완료 - EPC: {dummyEpc.Trim()}");
+                    Console.WriteLine($"[{_lineType}][리더] Read 완료 - EPC: {dummyEpc.Trim()}");
                 }
                 else if (commandCode == 4)
                 {
-                    InputRegisters[CH_RESPONSE_CODE] = 4;
-                    Console.WriteLine("[리더] Write 완료");
+                    _inputRegisters[CH_RESPONSE_CODE] = 4;
+                    Console.WriteLine($"[{_lineType}][리더] Write 완료");
                 }
             }
         }

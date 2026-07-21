@@ -1,0 +1,19 @@
+server:
+  port: 9090
+spring:
+  application:
+    name: backend
+  datasource:
+    url: jdbc:mariadb://127.0.0.1:3307/wcs_twin?characterEncoding=UTF-8
+    username: root
+    password: 1234
+    driver-class-name: org.mariadb.jdbc.Driver
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+wcs:
+  cors:
+    allowed-origins: http://localhost:8000
