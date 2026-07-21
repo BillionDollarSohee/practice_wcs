@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/01-timer-pattern/">
+    <Project Path="01-timer-pattern/TimerPatternKata.csproj" />
+  </Folder>
+  <Folder Name="/02-async-worker-pattern/">
+    <Project Path="02-async-worker-pattern/AsyncWorkerKata.csproj" />
+  </Folder>
+</Solution>
