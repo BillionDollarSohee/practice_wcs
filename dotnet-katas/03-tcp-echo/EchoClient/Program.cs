@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 class Program
 {
@@ -30,25 +31,59 @@ class Program
         Console.WriteLine("연결 시도 중...");
 
         // TODO 1: TcpClient 로 "127.0.0.1", PORT 에 연결하세요.
+        TcpClient tcpClient = new TcpClient();
+        await tcpClient.ConnectAsync("127.0.0.1", PORT);
+
         // TODO 2: NetworkStream 을 얻으세요.
-        throw new NotImplementedException("TODO 1, 2: 서버 연결");
+        NetworkStream stream = tcpClient.GetStream();
 
         // 아래 세 메시지를 순서대로 하나씩 보내고, 각각 응답을 받은 뒤 다음 메시지를 보내세요.
         string[] messages =
         {
             "hello",
-            new string('A', 5000), // 일부러 아주 긴 메시지 - TCP가 여러 조각으로 나눠 보낼 확률이 높음
+            new string('a', 5000), // 일부러 아주 긴 메시지 - TCP가 여러 조각으로 나눠 보낼 확률이 높음
             "QUIT"
         };
 
-        // foreach (string msg in messages)
-        // {
-        //     TODO 3: msg 를 STX + UTF8바이트 + ETX 로 프레이밍해서 stream에 WriteAsync
-        //     TODO 4: 응답을 받으세요. 서버와 마찬가지로 "누적버퍼에 모으다가 ETX 나오면 끝"
-        //             방식으로 완전한 메시지 하나를 다 받을 때까지 반복 Read 하세요.
-        //             (한 번의 ReadAsync로 5000자짜리 응답이 다 안 들어올 수 있습니다!)
-        //     TODO 5: 받은 응답에서 STX/ETX를 벗기고 문자열로 변환해서 콘솔에 출력
-        //             (예: "[Client] 보낸 것: hello (5자) → 받은 것: HELLO (5자)")
-        // }
+        foreach (string msg in messages)
+        {
+            // TODO 3: msg 를 STX + UTF8바이트 + ETX 로 프레이밍해서 stream에 WriteAsync
+            await stream.WriteAsync(new byte[] { STX }.Concat(Encoding.UTF8.GetBytes(msg)).Concat(new byte[] { ETX }).ToArray());
+
+            // TODO 4: 응답을 받으세요. 서버와 마찬가지로 "누적버퍼에 모으다가 ETX 나오면 끝"
+            //         방식으로 완전한 메시지 하나를 다 받을 때까지 반복 Read 하세요.
+            //         (한 번의 ReadAsync로 5000자짜리 응답이 다 안 들어올 수 있습니다!)
+            List<byte> receiveBuffer = new List<byte>();
+            byte[] readBuffer = new byte[1024];
+            bool keepRunning = true;
+
+            while (keepRunning)
+            {
+                int bytesRead = await stream.ReadAsync(readBuffer, 0, readBuffer.Length);
+                receiveBuffer.AddRange(readBuffer.AsSpan(0, bytesRead).ToArray());
+
+                if (receiveBuffer.Count == 0)
+                {
+                    keepRunning = false; // 연결 끊김
+                    break;
+                }
+
+                if (receiveBuffer.Count > 0)
+                {
+                    if (receiveBuffer.Contains(ETX))
+                    {
+                        // TODO 5: 받은 응답에서 STX / ETX를 벗기고 문자열로 변환해서 콘솔에 출력
+                        int etxIndex = receiveBuffer.IndexOf(ETX);
+                        byte[] messageBytes = receiveBuffer.Skip(1).Take(etxIndex - 1).ToArray();
+                        string receivedMessage = Encoding.UTF8.GetString(messageBytes);
+
+                        Console.WriteLine($"[Client] 보낸 것: {msg} ({msg.Length}자) → 받은 것: {receivedMessage} ({receivedMessage.Length}자)");
+
+                        receiveBuffer.RemoveRange(0, etxIndex + 1);
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

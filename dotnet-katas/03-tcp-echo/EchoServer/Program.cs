@@ -40,6 +40,8 @@ class Program
     static async Task Main()
     {
         // TODO 1: TcpListener 를 PORT로 만들고 Start() 하세요.
+        TcpListener listener = new TcpListener(IPAddress.Any, PORT);
+        listener.Start();
         // TODO 2: while(true) 로 AcceptTcpClientAsync() 를 반복 대기하다가
         //         클라이언트가 붙을 때마다 Task.Run(() => HandleClientAsync(client)) 으로
         //         "각 클라이언트를 독립된 Task에서" 처리하세요.
@@ -47,7 +49,11 @@ class Program
         //          단, 나중에 "이게 왜 실무에서는 위험할 수 있는지" 한번 생각해보세요.)
 
         Console.WriteLine($"서버 시작 - port {PORT}. Ctrl+C로 종료.");
-        throw new NotImplementedException("TODO 1, 2: Listener 시작 + Accept 루프");
+        while (true)
+        {
+            TcpClient client = await listener.AcceptTcpClientAsync();
+            Task.Run(() => HandleClientAsync(client));
+        }
     }
 
     /// <summary>
@@ -62,8 +68,8 @@ class Program
         using (NetworkStream stream = client.GetStream())
         {
             // TODO 3: 누적 버퍼를 준비하세요 (List<byte> 를 추천 - 실무 코드의 _accumulatedBuffer와 같은 역할)
-            List<byte> accumulatedBuffer = new List<byte>();
-            byte[] readBuffer = new byte[1024];
+            List<byte> accumulatedBuffer = new List<byte>(); // 누적 버퍼
+            byte[] readBuffer = new byte[1024]; // 한번 읽을 때
 
             bool keepRunning = true;
             while (keepRunning)
@@ -71,6 +77,13 @@ class Program
                 // TODO 4: stream.ReadAsync(readBuffer) 로 바이트를 받으세요.
                 //         반환값이 0이면 상대가 연결을 끊은 것이므로 루프를 빠져나가세요.
                 //         받은 만큼(readBuffer의 앞부분)을 accumulatedBuffer에 추가하세요.
+                int bytesRead = await stream.ReadAsync(readBuffer, 0, readBuffer.Length);
+                if (bytesRead == 0)
+                {
+                    keepRunning = false; // 연결 끊김
+                    break;
+                }
+                accumulatedBuffer.AddRange(readBuffer.AsSpan(0, bytesRead).ToArray());
 
                 // TODO 5: accumulatedBuffer 안에서 완전한 메시지(STX...ETX)를 찾을 수 있는 만큼
                 //         반복해서 잘라내세요. (한 번의 Read로 메시지가 2개 이상 뭉쳐올 수도 있으니
@@ -81,8 +94,31 @@ class Program
                 //   - 그 부분을 누적버퍼에서 제거하고
                 //   - 잘라낸 메시지를 아래 ProcessOneMessageAsync 로 넘겨서 처리하세요.
                 //     반환값이 false 면(QUIT 받음) keepRunning = false; break;
+                while (accumulatedBuffer.Count > 0)
+                {
+                    int etxIndex = accumulatedBuffer.IndexOf(ETX);
+                    if (etxIndex == -1)
+                    {
+                        // ETX가 없으면 아직 완전한 메시지가 아님
+                        break;
+                    }
+                    int stxIndex = accumulatedBuffer.LastIndexOf(STX, etxIndex);
+                    if (stxIndex == -1)
+                    {
+                        // STX가 없으면 유효한 메시지가 아님
+                        accumulatedBuffer.RemoveRange(0, etxIndex + 1);
+                        break;
+                    }
+                    bool result = await ProcessOneMessageAsync(stream, accumulatedBuffer.Skip(stxIndex).Take(etxIndex - stxIndex + 1).ToArray());
+                    accumulatedBuffer.RemoveRange(0, etxIndex + 1);
 
-                throw new NotImplementedException("TODO 3,4,5: 수신 + 누적버퍼 + 메시지 자르기");
+                    if (!result)
+                    {
+                        keepRunning = false;
+                        break;   // 안쪽 while 탈출 → 바깥 while(keepRunning)도 조건이 false라 같이 끝남
+                    }
+                }
+
             }
         }
 
@@ -96,11 +132,29 @@ class Program
     private static async Task<bool> ProcessOneMessageAsync(NetworkStream stream, byte[] framedMessage)
     {
         // TODO 6: framedMessage 에서 STX(맨앞)와 ETX(맨뒤)를 벗겨내고 나머지를 UTF8 문자열로 변환하세요.
+        if (framedMessage.Length < 2 || framedMessage[0] != STX || framedMessage[framedMessage.Length - 1] != ETX)
+        {
+            throw new ArgumentException("Invalid framed message");
+        }
+        string text = Encoding.UTF8.GetString(framedMessage, 1, framedMessage.Length - 2);
         // TODO 7: 콘솔에 받은 내용 출력 (예: "[Server] 수신: {text}", 너무 길면 앞 50자만 출력)
+        if (framedMessage.Length > 50)
+        {
+            Console.WriteLine($"[Server] 수신: {text.Substring(0, 50)}");
+        }
+        else
+        {
+            Console.WriteLine($"[Server] 수신: {text}");
+        }
         // TODO 8: text 가 "QUIT" 이면 false를 반환하세요 (더 이상 echo 하지 않음).
+        if (text == "QUIT")
+        {
+            return false;
+        }
         // TODO 9: 그 외엔 text.ToUpper() 로 바꾼 뒤, STX + UTF8바이트 + ETX 로 다시 프레이밍해서
         //         stream.WriteAsync로 그대로 돌려보내고 true를 반환하세요.
-
-        throw new NotImplementedException("TODO 6~9: 메시지 파싱 + 변환 + echo");
+        text = text.ToUpper();
+        await stream.WriteAsync(new byte[] { STX } .Concat(Encoding.UTF8.GetBytes(text)).Concat(new byte[] { ETX }).ToArray());
+        return true;
     }
 }
