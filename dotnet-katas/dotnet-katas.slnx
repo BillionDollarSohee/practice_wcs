@@ -12,4 +12,9 @@
     <Project Path="03-tcp-echo/EchoServer/EchoServer.csproj" />
     <File Path="03-tcp-echo/README.md" />
   </Folder>
+  <Folder Name="/04-db-parsing-pipeline/">
+    <Project Path="04-db-parsing-pipeline/DbParsingPipelineKata.csproj" />
+    <File Path="04-db-parsing-pipeline/README.md" />
+    <File Path="04-db-parsing-pipeline/setup.sql" />
+  </Folder>
 </Solution>
