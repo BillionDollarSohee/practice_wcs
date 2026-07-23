@@ -15,12 +15,12 @@
 // 사전 준비: 이 폴더의 setup.sql 을 wcs_twin DB에 먼저 실행해서 테이블을 만들어두세요.
 //   예) mysql -h127.0.0.1 -P3307 -uroot -p1234 wcs_twin < setup.sql
 //
-// 완성 조건 (Acceptance Criteria):
+//완성 조건(Acceptance Criteria):
 //   1) KATA_RAW_ORDER 에서 PROCESS_STATUS='WAIT' 인 행을 전부 조회해서 하나씩 처리한다.
 //   2) 각 행은 "자기 자신만의" 트랜잭션 안에서 처리된다 (한 트랜잭션이 여러 행을 같이 묶지 않는다).
 //   3) RAW_DATA를 '|' 로 쪼개서 정확히 3개 필드(PartCd, Qty, Location)가 아니거나
 //      Qty가 정수로 안 바뀌면 "파싱 실패"로 간주한다.
-//   4) 파싱 성공: KATA_PARSED_ORDER에 INSERT + 그 행의 KATA_RAW_ORDER.PROCESS_STATUS를
+//   4) 파싱 성공: KATA_PARSED_ORDER에 INSERT +그 행의 KATA_RAW_ORDER.PROCESS_STATUS를
 //      'COMPLETE'로 갱신하고 커밋한다.
 //   5) 파싱 실패: 방금 연 트랜잭션은 롤백하고, (새 트랜잭션으로) 그 행의 PROCESS_STATUS를
 //      'ERROR', ERROR_MSG에 실패 이유를 남긴다. — 이 행 때문에 다른 행 처리가 멈추면 안 된다.
@@ -53,8 +53,29 @@ class Program
         //         (RAW_ID, RAW_DATA 두 컬럼만 있으면 됩니다)
         //         조회는 트랜잭션 없이 그냥 SELECT 해도 됩니다 - 실제 처리(파싱/갱신)만
         //         행별로 독립 트랜잭션을 쓰면 됩니다.
-        List<(int RawId, string RawData)> waitList = new List<(int, string)>();
-        throw new NotImplementedException("TODO 2: WAIT 목록 조회");
+        List<(int RawId, string RawData)> waitList = await SelectWaitListAsync(connection);
+
+        static async Task<List<(int RawId, string RawData)>> SelectWaitListAsync(MySqlConnection connection)
+        {
+            var result = new List<(int, string)>();
+
+            string sql = "" +
+                "SELECT RAW_ID, RAW_DATA " +
+                "FROM KATA_RAW_ORDER " +
+                "WHERE PROCESS_STATUS = 'WAIT'";
+
+            using MySqlCommand command = new MySqlCommand(sql, connection);
+            using MySqlDataReader reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                int rawId = reader.GetInt32("RAW_ID");
+                string rawData = reader.GetString("RAW_DATA");
+                result.Add((rawId, rawData));
+            }
+
+            return result;
+        }
 
         int completeCount = 0;
         int errorCount = 0;
@@ -63,13 +84,19 @@ class Program
         {
             // TODO 3: 이 행 전용 트랜잭션을 시작하세요.
             //         (힌트: await connection.BeginTransactionAsync())
-            MySqlTransaction transaction = null;
+            MySqlTransaction transaction = await connection.BeginTransactionAsync();
 
             try
             {
                 // TODO 4: rawData를 '|' 로 Split 해서 정확히 3개 필드인지, 두 번째 필드가
                 //         int로 파싱되는지 확인하세요. 조건에 안 맞으면 예외를 던지세요
                 //         (예: throw new FormatException("필드 개수 또는 수량 형식이 올바르지 않습니다");)
+                string[] fields = rawData.Split('|');
+                if (fields.Length != 3)
+                    throw new FormatException("필드 개수 또는 수량 형식이 올바르지 않습니다");
+
+                if (!int.TryParse(fields[1], out int qty))
+                    throw new FormatException("필드 개수 또는 수량 형식이 올바르지 않습니다");
 
                 // TODO 5: KATA_PARSED_ORDER 에 INSERT 하세요.
                 //         INSERT INTO KATA_PARSED_ORDER (RAW_ID, PART_CD, QTY, LOCATION)
@@ -77,13 +104,34 @@ class Program
                 //         MySqlCommand의 Parameters.AddWithValue(...)로 파라미터 바인딩하세요
                 //         (SQL Injection 방지 - 문자열 그대로 이어붙이면 안 됩니다!)
                 //         Command.Transaction = transaction 도 꼭 설정하세요.
+                string insertSql = "" +
+                    "INSERT INTO KATA_PARSED_ORDER (RAW_ID, PART_CD, QTY, LOCATION) " +
+                   "VALUES (@RawId, @PartCd, @Qty, @Location)";
+
+                using MySqlCommand insertCommand = new MySqlCommand(insertSql, connection);
+                insertCommand.Transaction = transaction;   // ← 이걸 빼먹으면 "이 트랜잭션 안에서" 실행이 안 됩니다!
+
+                insertCommand.Parameters.AddWithValue("@RawId", rawId);
+                insertCommand.Parameters.AddWithValue("@PartCd", fields[0]);
+                insertCommand.Parameters.AddWithValue("@Qty", qty);
+                insertCommand.Parameters.AddWithValue("@Location", fields[2]);
+
+                await insertCommand.ExecuteNonQueryAsync();
+
 
                 // TODO 6: KATA_RAW_ORDER 의 이 행 PROCESS_STATUS를 'COMPLETE'로 UPDATE 하세요.
                 //         UPDATE KATA_RAW_ORDER SET PROCESS_STATUS='COMPLETE' WHERE RAW_ID=@RawId
+                string updateSql = "" +
+                    "UPDATE KATA_RAW_ORDER SET PROCESS_STATUS='COMPLETE' WHERE RAW_ID=@RawId";
+
+                using MySqlCommand updateCommand = new MySqlCommand(updateSql, connection);
+                updateCommand.Transaction = transaction;
+                updateCommand.Parameters.AddWithValue("@RawId", rawId);
+                await updateCommand.ExecuteNonQueryAsync();
 
                 // TODO 7: transaction.CommitAsync() 로 커밋하고, completeCount++ 하세요.
-
-                throw new NotImplementedException("TODO 4~7: 파싱 + INSERT + UPDATE + Commit");
+                await transaction.CommitAsync();
+                completeCount++;
             }
             catch (Exception ex)
             {
@@ -95,6 +143,24 @@ class Program
                 //         왜 "새로 하나 더" 해야 할까요? 방금 롤백한 트랜잭션 안에서 했던
                 //         UPDATE(만약 있었다면)도 다 같이 롤백돼서 사라졌기 때문입니다.
                 //         ERROR 상태 기록은 롤백과 무관하게 반드시 남아야 하니 별도로 처리해야 합니다.
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync();
+                }
+
+                // TODO 8-2: 새 명령으로 ERROR 상태 기록 - .Transaction을 안 걸어야 함(롤백된 트랜잭션은 이미 끝났으니까)
+                string errorSql = "" +
+                    "UPDATE KATA_RAW_ORDER " +
+                    "SET PROCESS_STATUS='ERROR', " +
+                    "ERROR_MSG=@" +
+                    "ErrorMsg " +
+                    "WHERE RAW_ID=@RawId";
+                using MySqlCommand errorCommand = new MySqlCommand(errorSql, connection);
+                errorCommand.Parameters.AddWithValue("@ErrorMsg", ex.Message);
+                errorCommand.Parameters.AddWithValue("@RawId", rawId);
+                await errorCommand.ExecuteNonQueryAsync();
+
+                errorCount++;
 
                 Console.WriteLine($"[RawId {rawId}] 파싱 실패: {ex.Message}");
             }
