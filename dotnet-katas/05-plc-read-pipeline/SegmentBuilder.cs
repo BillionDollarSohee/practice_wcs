@@ -80,11 +80,5 @@ public static class SegmentBuilder
         }
         if (current != null) segments.Add(current);   
         return segments;
-
-        // TODO 10: 루프 끝난 뒤 마지막 current 를 리스트에 추가하는 것 잊지 말기 (실무 코드에서도 foreach 밖에 있는 부분)
-        if (current != null)
-        {
-            segments.Add(current);
-        }
     }
 }

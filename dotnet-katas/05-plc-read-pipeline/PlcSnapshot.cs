@@ -27,8 +27,43 @@ public static class PlcSnapshot
         ChunkedReader reader, string deviceCode, IReadOnlyList<Subscription> subs, int maxGapWords)
     {
         // TODO 11: 구간 만들고 → 구간별로 읽어서 Data 채우기 (+ 실패 시 로그/무시)
+        var segments = SegmentBuilder.Build(subs, maxGapWords);
+
+        foreach (var seg in segments)
+        {
+            int totalBytes = (seg.EndWord - seg.StartWord) * ChunkedReader.WordBytes;
+            seg.Data = reader.ReadChunked(deviceCode, seg.StartWord, totalBytes); // 실패시 null
+
+        }
+
+        var result = new Dictionary<string, string>();
+
         // TODO 12: 각 구독에 대해 자기 구간 찾기 → 데이터 없으면 건너뜀
-        // TODO 13: Kind 에 따라 값 추출해서 결과 Dictionary 에 넣기
-        throw new NotImplementedException("TODO 11~13: PlcSnapshot.ReadAll");
+        foreach (var sub in subs)
+        {
+            int words = WordBit.WordsNeeded(sub.Kind != SubKind.Bit, sub.StartBit, sub.Length);
+            int subEnd = sub.StartWord + words;
+
+            var seg = segments.FirstOrDefault(g => g.StartWord <= sub.StartWord && subEnd <= g.EndWord);
+            if (seg == null || seg.Data == null) continue;   // 구간 없음 / 읽기 실패 → 이 항목은 결과에서 빠진다
+
+            // TODO 13: Kind 에 따라 값 추출해서 결과 Dictionary 에 넣기
+            int offset = sub.StartWord - seg.StartWord;
+
+            switch (sub.Kind)
+            {
+                case SubKind.Bit:
+                    result[sub.Name] = WordBit.GetBit(seg.Data, offset, sub.StartBit) ? "1" : "0";
+                    break;
+                case SubKind.Word:
+                    result[sub.Name] = WordBit.GetWord(seg.Data, offset).ToString();
+                    break;
+                case SubKind.Ascii:
+                    result[sub.Name] = WordBit.GetAscii(seg.Data, offset, sub.Length);
+                    break;
+            }
+        }
+
+        return result;
     }
 }

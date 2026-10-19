@@ -83,7 +83,7 @@ class Program
                     keepRunning = false; // 연결 끊김
                     break;
                 }
-                accumulatedBuffer.AddRange(readBuffer.AsSpan(0, bytesRead).ToArray());
+                accumulatedBuffer.AddRange(readBuffer.AsSpan(0, bytesRead).ToArray());      
 
                 // TODO 5: accumulatedBuffer 안에서 완전한 메시지(STX...ETX)를 찾을 수 있는 만큼
                 //         반복해서 잘라내세요. (한 번의 Read로 메시지가 2개 이상 뭉쳐올 수도 있으니
