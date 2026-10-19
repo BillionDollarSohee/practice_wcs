@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace PlcReadKata;
 
 // PART C — 읽기 구간 병합
@@ -43,8 +45,46 @@ public static class SegmentBuilder
     public static List<Segment> Build(IEnumerable<Subscription> subs, int maxGapWords)
     {
         // TODO 8: 각 구독을 (Start, End) 로 변환해서 Start 기준 정렬  (LINQ Select / OrderBy, 또는 직접 반복문)
+        var spans = new List<(int Start, int End)>();
+
+        foreach (var s in subs)
+        {
+            int words = WordBit.WordsNeeded(s.Kind != SubKind.Bit, s.StartBit, s.Length);
+            spans.Add((s.StartWord, s.StartWord + words));
+        }
+        spans.Sort((a, b) => a.Start.CompareTo(b.Start));
         // TODO 9: 현재 구간(current)을 들고 가며 foreach — 병합할지 / 끊고 새로 시작할지 결정
+
+        var segments = new List<Segment>();
+        Segment? current = null;   
+
+        foreach (var sp in spans)
+        {
+            if (current == null)           
+            {
+                current = new Segment { StartWord = sp.Start, EndWord = sp.End };
+                continue;
+            }
+
+            int gap = sp.Start - current.EndWord;
+
+            if (gap <= maxGapWords)
+            {
+                current.EndWord = Math.Max(current.EndWord, sp.End);
+            }
+            else
+            {
+                segments.Add(current);
+                current = new Segment { StartWord = sp.Start, EndWord = sp.End };
+            }
+        }
+        if (current != null) segments.Add(current);   
+        return segments;
+
         // TODO 10: 루프 끝난 뒤 마지막 current 를 리스트에 추가하는 것 잊지 말기 (실무 코드에서도 foreach 밖에 있는 부분)
-        throw new NotImplementedException("TODO 8~10: SegmentBuilder.Build");
+        if (current != null)
+        {
+            segments.Add(current);
+        }
     }
 }

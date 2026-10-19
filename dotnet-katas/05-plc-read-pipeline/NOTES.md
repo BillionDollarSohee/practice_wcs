@@ -22,10 +22,14 @@
 - 실패하면: null 반환
 
 ## TODO 8~10 (SegmentBuilder.Build)
-- 입력: 
-- 출력:
-- 병합 판단 기준 (gap) 을 그림으로 그려보면:
+- 입력: 읽을 항목들(Subscription 목록), 병합해도 되는 최대 빈 워드 수(maxGapWords)
+- 출력: 구간(Segment) 목록. 각 구간은 [StartWord, EndWord) 이고 시작 워드 순서로 정렬돼 있다
+- 병합 판단 기준 (gap) 을 그림으로 그려보면: 다음.Start - 현재.End 가 maxGapWords 보다 작거나 같으면 병합
 - 실패/경계:
+  - gap 이 딱 maxGap 이면 병합, maxGap+1 이면 분리
+  - 입력이 비어 있으면 빈 목록
+  - 입력이 정렬돼 있지 않아도 StartWord 오름차순으로 먼저 정렬한다
+  - 다른 구간 안에 들어가는 항목은 gap 이 음수 → 병합, 단 End 는 줄어들지 않게 큰 쪽으로 
 
 ## TODO 11~13 (PlcSnapshot.ReadAll)
 - 입력:
