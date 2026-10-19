@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/00-basics-lessons/">
+    <Project Path="00-basics-lessons/BasicsLessons.csproj" />
+  </Folder>
   <Folder Name="/01-timer-pattern/">
     <Project Path="01-timer-pattern/TimerPatternKata.csproj" />
     <File Path="01-timer-pattern/README.md" />
@@ -16,5 +19,40 @@
     <Project Path="04-db-parsing-pipeline/DbParsingPipelineKata.csproj" />
     <File Path="04-db-parsing-pipeline/README.md" />
     <File Path="04-db-parsing-pipeline/setup.sql" />
+  </Folder>
+  <Folder Name="/05-plc-read-pipeline/">
+    <Project Path="05-plc-read-pipeline/PlcReadKata.csproj" />
+    <File Path="05-plc-read-pipeline/README.md" />
+    <File Path="05-plc-read-pipeline/NOTES.md" />
+  </Folder>
+  <Folder Name="/06-execution-agent/">
+    <Project Path="06-execution-agent/ExecutionAgentKata.csproj" />
+    <File Path="06-execution-agent/README.md" />
+    <File Path="06-execution-agent/NOTES.md" />
+  </Folder>
+  <Folder Name="/07-equipment-status/">
+    <Project Path="07-equipment-status/EquipmentStatusKata.csproj" />
+    <File Path="07-equipment-status/README.md" />
+    <File Path="07-equipment-status/NOTES.md" />
+  </Folder>
+  <Folder Name="/08-command-queue/">
+    <Project Path="08-command-queue/CommandQueueKata.csproj" />
+    <File Path="08-command-queue/README.md" />
+    <File Path="08-command-queue/NOTES.md" />
+  </Folder>
+  <Folder Name="/09-alarm-service/">
+    <Project Path="09-alarm-service/AlarmServiceKata.csproj" />
+    <File Path="09-alarm-service/README.md" />
+    <File Path="09-alarm-service/NOTES.md" />
+  </Folder>
+  <Folder Name="/10-service-lifecycle/">
+    <Project Path="10-service-lifecycle/ServiceLifecycleKata.csproj" />
+    <File Path="10-service-lifecycle/README.md" />
+    <File Path="10-service-lifecycle/NOTES.md" />
+  </Folder>
+  <Folder Name="/11-fixed-length-parser/">
+    <Project Path="11-fixed-length-parser/FixedLengthParserKata.csproj" />
+    <File Path="11-fixed-length-parser/README.md" />
+    <File Path="11-fixed-length-parser/NOTES.md" />
   </Folder>
 </Solution>
